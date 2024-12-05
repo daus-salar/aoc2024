@@ -16,7 +16,7 @@ pub fn part2(input: &str) -> i32 {
 }
 
 fn parse(input: &str) -> Result<Vec<Operation>, Error> {
-    let ops_pattern = regex::Regex::new(r"mul\(([0-9]+),([0-9]+)\)|don't\(\)|do\(\)").unwrap();
+    let ops_pattern = regex_lite::Regex::new(r"mul\(([0-9]+),([0-9]+)\)|don't\(\)|do\(\)").unwrap();
 
     let mut result: Vec<Operation> = vec![];
     for c in ops_pattern.captures_iter(input) {

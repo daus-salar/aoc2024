@@ -17,12 +17,7 @@ fn evaluate_reports_with_dumping(input: &[Vec<i32>]) -> Result<usize, Error> {
         .iter()
         .filter(|r| {
             if !is_safe_with_dumping(r) {
-                if is_safe_dumped_brute(r) {
-                    println!("{:?}", r);
-                    true
-                } else {
                 false
-                }
             } else {
                 true
             }

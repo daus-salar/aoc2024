@@ -27,15 +27,17 @@ pub fn part2(input: &str) -> i32 {
 
 fn read_from(input: &str, a: &mut BinaryHeap<i32>, b: &mut BinaryHeap<i32>) -> Result<(), Error> {
     for line in input.lines() {
-        let cells: Vec<i32> = line
+        if let Ok(cells) = line
             .split_whitespace()
-            .map(|s| s.parse::<i32>().unwrap())
-            .collect();
-        if cells.len() != 2 {
-            return Err(Error::InputTwoColumsExpected);
-        } else {
-            a.push(cells[0]);
-            b.push(cells[1]);
+            .map(|s| s.parse::<i32>())
+            .collect::<Result<Vec<i32>, _>>()
+        {
+            if cells.len() != 2 {
+                return Err(Error::InputTwoColumsExpected(cells.len()));
+            } else {
+                a.push(cells[0]);
+                b.push(cells[1]);
+            }
         }
     }
     Ok(())
@@ -52,7 +54,7 @@ pub fn similarity_score(a: &[i32], b: &[i32]) -> i32 {
 pub fn frequency(a: &[i32]) -> HashMap<i32, i32> {
     let frequency = a.iter().fold(HashMap::<i32, i32>::new(), |mut map, entry| {
         if let Some(v) = map.get_mut(entry) {
-            *v +=  1;
+            *v += 1;
         } else {
             map.insert(*entry, 1);
         }
@@ -63,7 +65,7 @@ pub fn frequency(a: &[i32]) -> HashMap<i32, i32> {
 
 #[derive(Debug)]
 pub enum Error {
-    InputTwoColumsExpected,
+    InputTwoColumsExpected(usize),
     InputFileIOError(io::Error),
 }
 
@@ -78,7 +80,6 @@ mod tests {
     use io::Read;
 
     use super::*;
-
 
     #[test]
     fn read_into_simple() {

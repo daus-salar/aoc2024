@@ -2,13 +2,13 @@ use std::{io, num::ParseIntError};
 
 #[aoc(day2, part1)]
 pub fn part1(input: &str) -> usize {
-    let input = from(input).unwrap();
+    let input = from(input);
     evaluate_report(&input).unwrap()
 }
 
 #[aoc(day2, part2)]
 pub fn part2(input: &str) -> usize {
-    let input = from(input).unwrap();
+    let input = from(input);
     evaluate_reports_with_dumping(&input).unwrap()
 }
 
@@ -21,7 +21,7 @@ fn evaluate_reports_with_dumping(input: &[Vec<i32>]) -> Result<usize, Error> {
                     println!("{:?}", r);
                     true
                 } else {
-                    false
+                false
                 }
             } else {
                 true
@@ -36,19 +36,17 @@ fn evaluate_report(input: &[Vec<i32>]) -> Result<usize, Error> {
     Ok(safe_reports)
 }
 
-fn from(input: &str) -> Result<Vec<Vec<i32>>, Error> {
+fn from(input: &str) -> Vec<Vec<i32>> {
     let mut input_parsed = Vec::<Vec<i32>>::new();
     for l in input.lines() {
-        let r: Result<Vec<i32>, _> = l
+        let r: Vec<i32> = l
             .split_ascii_whitespace()
             .map(|s| s.parse::<i32>())
+            .flat_map(Result::ok)
             .collect();
-        match r {
-            Ok(r) => input_parsed.push(r),
-            Err(pie) => return Err(Error::ParsingInput(pie)),
-        }
+        input_parsed.push(r);
     }
-    Ok(input_parsed)
+    input_parsed
 }
 
 #[derive(Debug, PartialEq)]
@@ -209,6 +207,6 @@ mod tests {
         input_file.read_to_string(&mut input)?;
 
         let input = input.as_str();
-        from(input)
+        Ok(from(input))
     }
 }

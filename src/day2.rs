@@ -1,31 +1,23 @@
-use std::{
-    cmp::max,
-    fs::File,
-    io::{self, Read},
-    num::ParseIntError,
-};
+use std::{io, num::ParseIntError};
 
-fn main() -> Result<(), Error> {
-    let path = "input";
-    let input = parse_input(path)?;
-    let safe_reports = evaluate_report(&input)?;
-    let safe_reports_with_dumping = evaluate_reports_with_dumping(&input)?;
-
-    println!("Reports are safe {} ", safe_reports);
-    println!(
-        "Reports are safe {} when one is dumped ",
-        safe_reports_with_dumping
-    );
-
-    Ok(())
+#[aoc(day2, part1)]
+pub fn part1(input: &str) -> usize {
+    let input = from(input).unwrap();
+    evaluate_report(&input).unwrap()
 }
 
-fn evaluate_reports_with_dumping(input: &Vec<Vec<i32>>) -> Result<usize, Error> {
+#[aoc(day2, part2)]
+pub fn part2(input: &str) -> usize {
+    let input = from(input).unwrap();
+    evaluate_reports_with_dumping(&input).unwrap()
+}
+
+fn evaluate_reports_with_dumping(input: &[Vec<i32>]) -> Result<usize, Error> {
     let safe_reports = input
-        .into_iter()
+        .iter()
         .filter(|r| {
-            if !is_safe_with_dumping(&r) {
-                if is_safe_dumped_brute(&r) {
+            if !is_safe_with_dumping(r) {
+                if is_safe_dumped_brute(r) {
                     println!("{:?}", r);
                     true
                 } else {
@@ -39,16 +31,12 @@ fn evaluate_reports_with_dumping(input: &Vec<Vec<i32>>) -> Result<usize, Error> 
     Ok(safe_reports)
 }
 
-fn evaluate_report(input: &Vec<Vec<i32>>) -> Result<usize, Error> {
-    let safe_reports = input.into_iter().filter(|r| is_safe(&r).is_ok()).count();
+fn evaluate_report(input: &[Vec<i32>]) -> Result<usize, Error> {
+    let safe_reports = input.iter().filter(|r| is_safe(r).is_ok()).count();
     Ok(safe_reports)
 }
 
-fn parse_input(path: &str) -> Result<Vec<Vec<i32>>, Error> {
-    let mut input = String::new();
-    let mut input_file = File::open(path)?;
-    input_file.read_to_string(&mut input)?;
-
+fn from(input: &str) -> Result<Vec<Vec<i32>>, Error> {
     let mut input_parsed = Vec::<Vec<i32>>::new();
     for l in input.lines() {
         let r: Result<Vec<i32>, _> = l
@@ -68,7 +56,7 @@ enum ErrorAt {
     Pos(usize),
 }
 
-fn is_safe_with_dumping(report: &Vec<i32>) -> bool {
+fn is_safe_with_dumping(report: &[i32]) -> bool {
     match is_safe(report) {
         Ok(()) => true,
         Err(ErrorAt::Pos(1..=2)) => {
@@ -81,7 +69,7 @@ fn is_safe_with_dumping(report: &Vec<i32>) -> bool {
     }
 }
 
-fn is_safe_dumped_brute(report: &Vec<i32>) -> bool {
+fn is_safe_dumped_brute(report: &[i32]) -> bool {
     match is_safe(report) {
         Ok(()) => true,
         Err(ErrorAt::Pos(..)) => {
@@ -95,59 +83,23 @@ fn is_safe_dumped_brute(report: &Vec<i32>) -> bool {
     }
 }
 
-fn dump_pos2<'a>(report: &'a Vec<i32>, pos: usize) -> Box<dyn Iterator<Item = &i32> + 'a> {
-    let lower = if pos == 0 { 0 } else { pos };
-    let upper = if pos == 0 { 1 } else { pos };
-
-    let it = report
-        .into_iter()
-        .take(lower)
-        .chain(report.into_iter().skip(upper));
-    Box::new(it)
-}
-
-fn dump_pos(report: &Vec<i32>, pos: usize) -> Vec<i32> {
-    let mut report_altered = report.clone();
+fn dump_pos(report: &[i32], pos: usize) -> Vec<i32> {
+    let mut report_altered = report.to_owned();
 
     let _ = report_altered.splice(pos..pos + 1, vec![]);
     report_altered
 }
 
-fn is_safe(report: &Vec<i32>) -> Result<(), ErrorAt> {
+fn is_safe(report: &[i32]) -> Result<(), ErrorAt> {
     let mut before: Option<i32> = None;
     let mut increasing: Option<bool> = None;
-    for (idx, level) in report.into_iter().enumerate() {
+    for (idx, level) in report.iter().enumerate() {
         (increasing, before) = match (
             increasing,
             before.map(|b| b < *level),
             before.map(|b| (b - *level).abs()),
         ) {
-            (.., Some(local_increase)) if local_increase > 3 || local_increase < 1 => {
-                // increase amount critical
-                return Err(ErrorAt::Pos(idx));
-            }
-            (None, None, ..) => (None, Some(*level)),
-            (None, Some(local_increasing), ..) => (Some(local_increasing), Some(*level)),
-            (Some(true), Some(true), ..) => (Some(true), Some(*level)),
-            (Some(false), Some(false), ..) => (Some(false), Some(*level)),
-            _ => {
-                return Err(ErrorAt::Pos(idx));
-            }
-        }
-    }
-    Ok(())
-}
-
-fn is_safe2<'a, T: Iterator<Item = &'a i32>>(report: T) -> Result<(), ErrorAt> {
-    let mut before: Option<i32> = None;
-    let mut increasing: Option<bool> = None;
-    for (idx, level) in report.into_iter().enumerate() {
-        (increasing, before) = match (
-            increasing,
-            before.map(|b| b < *level),
-            before.map(|b| (b - *level).abs()),
-        ) {
-            (.., Some(local_increase)) if local_increase > 3 || local_increase < 1 => {
+            (.., Some(local_increase)) if !(1..=3).contains(&local_increase) => {
                 // increase amount critical
                 return Err(ErrorAt::Pos(idx));
             }
@@ -183,6 +135,10 @@ impl From<ParseIntError> for Error {
 
 #[cfg(test)]
 mod tests {
+
+    use std::fs::File;
+
+    use io::Read;
 
     use super::*;
 
@@ -235,15 +191,24 @@ mod tests {
     }
     #[test]
     fn evaluate_report_simple() {
-        let input = parse_input("input_test").unwrap();
+        let input = parse_input("test_data/day2.txt").unwrap();
         let r = evaluate_report(&input).unwrap();
         assert_eq!(2, r);
     }
 
     #[test]
     fn evaluate_report_dumped_simple() {
-        let input = parse_input("input_test").unwrap();
+        let input = parse_input("test_data/day2.txt").unwrap();
         let r = evaluate_reports_with_dumping(&input).unwrap();
         assert_eq!(4, r);
+    }
+
+    fn parse_input(path: &str) -> Result<Vec<Vec<i32>>, Error> {
+        let mut input = String::new();
+        let mut input_file = File::open(path)?;
+        input_file.read_to_string(&mut input)?;
+
+        let input = input.as_str();
+        from(input)
     }
 }

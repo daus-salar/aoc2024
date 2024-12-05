@@ -1,14 +1,15 @@
-use std::{
-    fs::File,
-    io::{self, Read},
-    num::ParseIntError,
-};
+use std::io::{self};
 
-fn main() -> Result<(), Error> {
-    let input = parse_input("input")?;
-    println!("Count {} XMAS", input.count_xmas());
-    println!("Count {} X-MAS", input.count_crossed_mas());
-    Ok(())
+#[aoc(day4, part1)]
+pub fn part1(input: &str) -> usize {
+    let puzzle = parse_input(input).unwrap();
+    puzzle.count_xmas()
+}
+
+#[aoc(day4, part2)]
+pub fn part2(input: &str) -> usize {
+    let puzzle = parse_input(input).unwrap();
+    puzzle.count_crossed_mas()
 }
 
 pub struct Puzzle {
@@ -53,10 +54,8 @@ impl Puzzle {
         let mut count = 0;
         for r_idx in 0..self.rows() {
             for c_idx in 0..self.columns() {
-                if self.get(r_idx, c_idx) == Some('A') {
-                    if self.is_crossed_mas_at(r_idx, c_idx) {
-                        count += 1;
-                    }
+                if self.is_crossed_mas_at(r_idx, c_idx) {
+                    count += 1;
                 }
             }
         }
@@ -102,7 +101,7 @@ impl Puzzle {
         let mut r_idx = r_idx;
         let mut c_idx = c_idx;
 
-        for i in 1..XMAS.len() {
+        for c in &XMAS[1..] {
             if let Some(new_r) = r_idx.checked_add_signed(dir.0) {
                 r_idx = new_r
             } else {
@@ -113,7 +112,7 @@ impl Puzzle {
             } else {
                 return false;
             }
-            if self.get(r_idx, c_idx) != Some(XMAS[i]) {
+            if self.get(r_idx, c_idx) != Some(*c) {
                 return false;
             }
         }
@@ -128,12 +127,10 @@ impl Puzzle {
         }
         if let Some(r_idx) = r_idx.checked_sub(1) {
             if let Some(c_idx) = c_idx.checked_sub(1) {
-                if self.get(r_idx, c_idx) == Some('M')
-                    && self.get(r_idx + 2, c_idx + 2) == Some('S')
-                {
-                    lr = true;
-                } else if self.get(r_idx, c_idx) == Some('S')
-                    && self.get(r_idx + 2, c_idx + 2) == Some('M')
+                if (self.get(r_idx, c_idx) == Some('M')
+                    && self.get(r_idx + 2, c_idx + 2) == Some('S'))
+                    || (self.get(r_idx, c_idx) == Some('S')
+                        && self.get(r_idx + 2, c_idx + 2) == Some('M'))
                 {
                     lr = true;
                 }
@@ -141,12 +138,10 @@ impl Puzzle {
         }
         if let Some(r_idx) = r_idx.checked_sub(1) {
             if let Some(c_idx) = c_idx.checked_sub(1) {
-                if self.get(r_idx, c_idx + 2) == Some('M')
-                    && self.get(r_idx + 2, c_idx) == Some('S')
-                {
-                    rl = true;
-                } else if self.get(r_idx, c_idx + 2) == Some('S')
-                    && self.get(r_idx + 2, c_idx) == Some('M')
+                if (self.get(r_idx, c_idx + 2) == Some('M')
+                    && self.get(r_idx + 2, c_idx) == Some('S'))
+                    || (self.get(r_idx, c_idx + 2) == Some('S')
+                        && self.get(r_idx + 2, c_idx) == Some('M'))
                 {
                     rl = true;
                 }
@@ -156,14 +151,10 @@ impl Puzzle {
     }
 }
 
-fn parse_input(path: &str) -> Result<Puzzle, Error> {
-    let mut input = String::new();
-    let mut input_file = File::open(path)?;
-    input_file.read_to_string(&mut input)?;
-
-    let input_parsed: Vec<Vec<char>> = input
+fn parse_input(var_name: &str) -> Result<Puzzle, Error> {
+    let input_parsed: Vec<Vec<char>> = var_name
         .lines()
-        .map(|s| s.to_string().chars().into_iter().collect::<Vec<char>>())
+        .map(|s| s.to_string().chars().collect::<Vec<char>>())
         .collect();
     Ok(Puzzle { data: input_parsed })
 }
@@ -171,7 +162,6 @@ fn parse_input(path: &str) -> Result<Puzzle, Error> {
 #[derive(Debug)]
 pub enum Error {
     InputError(io::Error),
-    ParsingInput(ParseIntError),
 }
 
 impl From<io::Error> for Error {
@@ -180,20 +170,19 @@ impl From<io::Error> for Error {
     }
 }
 
-impl From<ParseIntError> for Error {
-    fn from(value: ParseIntError) -> Self {
-        Error::ParsingInput(value)
-    }
-}
 
 #[cfg(test)]
 mod tests {
+
+    use std::fs::File;
+
+    use io::Read;
 
     use super::*;
 
     #[test]
     fn part_one_input_test() {
-        let input = parse_input("input_test").unwrap();
+        let input = parse_from_file("test_data/day4.txt").unwrap();
 
         assert_eq!(10, input.columns());
         assert_eq!(10, input.rows());
@@ -202,7 +191,7 @@ mod tests {
 
     #[test]
     fn is_xmas_at_input_test() {
-        let input = parse_input("input_test").unwrap();
+        let input = parse_from_file("test_data/day4.txt").unwrap();
 
         assert_eq!(false, input.is_xmas_at(2, 4, (0, 1)));
         assert_eq!(true, input.is_xmas_at(4, 0, (0, 1)));
@@ -211,7 +200,7 @@ mod tests {
 
     #[test]
     fn count_xmas_at_input_test() {
-        let input = parse_input("input_test").unwrap();
+        let input = parse_from_file("test_data/day4.txt").unwrap();
 
         assert_eq!(0, input.count_xmas_at(2, 4));
         assert_eq!(1, input.count_xmas_at(4, 0));
@@ -220,34 +209,42 @@ mod tests {
 
     #[test]
     fn count_xmas_input_test() {
-        let input = parse_input("input_test").unwrap();
+        let input = parse_from_file("test_data/day4.txt").unwrap();
 
         assert_eq!(18, input.count_xmas());
     }
     #[test]
     fn part_one_count_input_test() {
-        let input = parse_input("input_test").unwrap();
+        let input = parse_from_file("test_data/day4.txt").unwrap();
 
         input.count_xmas();
     }
 
     #[test]
     fn count_is_crossed_mas_input_test() {
-        let input = parse_input("input_test").unwrap();
+        let input = parse_from_file("test_data/day4.txt").unwrap();
 
         assert_eq!(true, input.is_crossed_mas_at(1, 2));
     }
 
     #[test]
     fn count_mas_input_test() {
-        let input = parse_input("input_test").unwrap();
+        let input = parse_from_file("test_data/day4.txt").unwrap();
 
         assert_eq!(9, input.count_crossed_mas());
     }
     #[test]
     fn count_mas_input() {
-        let input = parse_input("input").unwrap();
+        let input = parse_from_file("input/2024/day4.txt").unwrap();
 
         assert_eq!(1864, input.count_crossed_mas());
+    }
+    fn parse_from_file(path: &str) -> Result<Puzzle, Error> {
+        let mut input = String::new();
+        let mut input_file = File::open(path)?;
+        input_file.read_to_string(&mut input)?;
+
+        let var_name = input.as_str();
+        parse_input(var_name)
     }
 }

@@ -1,25 +1,18 @@
 use std::{
-    fs::File,
-    io::{self, Read},
+    io::{self},
     num::ParseIntError,
 };
 
-fn main() -> Result<(), Error> {
-    let input = read_input("input")?;
-
-    let comp = Computation::parse(input)?;
-    
-    println!("Compute {}", comp.calculate());
-    println!("Compute {}", comp.calculate_with_switches());
-
-    Ok(())
+#[aoc(day3, part1)]
+pub fn part1(input: &str) -> i32 {
+    let computation = Computation::parse(input).unwrap();
+    computation.calculate()
 }
 
-fn read_input(path: &str) -> Result<String, Error> {
-    let mut input = String::new();
-    let mut input_file = File::open(path)?;
-    input_file.read_to_string(&mut input)?;
-    Ok(input)
+#[aoc(day3, part2)]
+pub fn part2(input: &str) -> i32 {
+    let computation = Computation::parse(input).unwrap();
+    computation.calculate_with_switches()
 }
 
 fn parse(input: &str) -> Result<Vec<Operation>, Error> {
@@ -32,7 +25,7 @@ fn parse(input: &str) -> Result<Vec<Operation>, Error> {
             "don't()" => result.push(Operation::DoNot()),
             mul => {
                 let mul_pattern = regex::Regex::new(r"mul\(([0-9]+),([0-9]+)\)").unwrap();
-                for (_, [op1, op2]) in mul_pattern.captures(&mul).map(|c| c.extract()) {
+                if let Some((_, [op1, op2])) = mul_pattern.captures(mul).map(|c| c.extract()) {
                     let op1: i32 = op1.parse().unwrap();
                     let op2: i32 = op2.parse().unwrap();
                     result.push(Operation::Multiply(op1, op2));
@@ -54,8 +47,6 @@ struct Computation {
     ops: Vec<Operation>,
 }
 
-type CalculateFn = fn(&Computation, ignore_do : bool) -> i32;
-
 impl Computation {
     fn calculate(&self) -> i32 {
         self.ops
@@ -73,7 +64,11 @@ impl Computation {
         let mut result = 0;
         for op in self.ops.iter() {
             match op {
-                Operation::Multiply(op1, op2) => if enable { result +=*op1 * *op2}
+                Operation::Multiply(op1, op2) => {
+                    if enable {
+                        result += *op1 * *op2
+                    }
+                }
                 Operation::Do() => enable = true,
                 Operation::DoNot() => enable = false,
             }
@@ -84,10 +79,9 @@ impl Computation {
         Computation { ops }
     }
 
-    fn parse(input: String) -> Result<Self, Error> {
-        let ops = parse(input.as_str());
-        let comp = ops.map(|ops| Computation::from(ops));
-        comp
+    fn parse(input: &str) -> Result<Self, Error> {
+        let ops = parse(input);
+        ops.map(Computation::from)
     }
 }
 #[derive(Debug)]
@@ -111,11 +105,15 @@ impl From<ParseIntError> for Error {
 #[cfg(test)]
 mod tests {
 
+    use std::fs::File;
+
+    use io::Read;
+
     use super::*;
 
     #[test]
     fn part_one_input_test() {
-        let input = read_input("input_test").unwrap();
+        let input = read_input("test_data/day3.txt").unwrap();
         assert_eq!(
             "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))",
             input
@@ -165,17 +163,35 @@ mod tests {
 
     #[test]
     fn part_one_input_test_complete() {
-        let input = read_input("input_test").unwrap();
-        let comp = Computation::parse(input);
+        let input = read_input("test_data/day3.txt").unwrap();
+        let comp = Computation::parse(input.as_str());
         let result = comp.map(|comp| comp.calculate());
         assert_eq!(161, result.unwrap());
     }
 
     #[test]
     fn part_two_input_test() {
-        let input = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))".to_string();
-        let comp = Computation::parse(input);
+        let input =
+            "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))".to_string();
+        let comp = Computation::parse(input.as_str());
         let result = comp.map(|comp| comp.calculate_with_switches());
         assert_eq!(48, result.unwrap());
+    }
+    #[test]
+    fn main() -> Result<(), Error> {
+        let input = read_input("input/2024/day3.txt")?;
+
+        let comp = Computation::parse(input.as_str())?;
+
+        println!("Compute {}", comp.calculate());
+        println!("Compute {}", comp.calculate_with_switches());
+
+        Ok(())
+    }
+    fn read_input(path: &str) -> Result<String, Error> {
+        let mut input = String::new();
+        let mut input_file = File::open(path)?;
+        input_file.read_to_string(&mut input)?;
+        Ok(input)
     }
 }

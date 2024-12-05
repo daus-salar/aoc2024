@@ -7,7 +7,7 @@ edition = "2021"
 rust-crypto = "0.2.36"
 aoc-runner = "0.3.0"
 aoc-runner-derive = "0.3.0"
-regex = "1.11.1"
+regex = {version = "1.11.1", features = ["perf-inline" ] }
 
 [[bench]]
 name = "main"

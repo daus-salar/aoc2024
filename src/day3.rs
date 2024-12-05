@@ -16,18 +16,17 @@ pub fn part2(input: &str) -> i32 {
 }
 
 fn parse(input: &str) -> Result<Vec<Operation>, Error> {
-    let ops_pattern = regex::Regex::new(r"mul\([0-9]+,[0-9]+\)|don't\(\)|do\(\)").unwrap();
-    let mul_pattern = regex::Regex::new(r"mul\(([0-9]+),([0-9]+)\)").unwrap();
+    let ops_pattern = regex::Regex::new(r"mul\((\d+),(\d+)\)|don't\(\)|do\(\)").unwrap();
 
     let mut result: Vec<Operation> = vec![];
     for c in ops_pattern.captures_iter(input) {
         match &c[0] {
             "do()" => result.push(Operation::Do()),
             "don't()" => result.push(Operation::DoNot()),
-            mul => {            
-                if let Some((_, [op1, op2])) = mul_pattern.captures(mul).map(|c| c.extract()) {
-                    let op1: i32 = op1.parse().unwrap();
-                    let op2: i32 = op2.parse().unwrap();
+            _ => {
+                if let (Some(op1), Some(op2)) = (c.get(1), c.get(2)) {
+                    let op1: i32 = op1.as_str().parse().unwrap();
+                    let op2: i32 = op2.as_str().parse().unwrap();
                     result.push(Operation::Multiply(op1, op2));
                 }
             }

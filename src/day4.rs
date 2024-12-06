@@ -193,9 +193,9 @@ mod tests {
     fn is_xmas_at_input_test() {
         let input = parse_from_file("test_data/day4.txt").unwrap();
 
-        assert_eq!(false, input.is_xmas_at(2, 4, (0, 1)));
-        assert_eq!(true, input.is_xmas_at(4, 0, (0, 1)));
-        assert_eq!(true, input.is_xmas_at(4, 6, (0, -1)));
+        assert!(!input.is_xmas_at(2, 4, (0, 1)));
+        assert!(input.is_xmas_at(4, 0, (0, 1)));
+        assert!(input.is_xmas_at(4, 6, (0, -1)));
     }
 
     #[test]
@@ -224,7 +224,7 @@ mod tests {
     fn count_is_crossed_mas_input_test() {
         let input = parse_from_file("test_data/day4.txt").unwrap();
 
-        assert_eq!(true, input.is_crossed_mas_at(1, 2));
+        assert!(input.is_crossed_mas_at(1, 2));
     }
 
     #[test]

@@ -15,23 +15,38 @@ pub fn part1(input: &str) -> usize {
 pub fn part2(input: &str) -> usize {
     let mut count = 0;
     let prototype = LabMap::new(input);
-    for i in 0..prototype.len() {
-        for j in 0..prototype.len() {
-            let mut sim = prototype.clone();
-            if match prototype.content(i, j) {
-                '#' | '>' | 'v' | '<' | '^' => true,
-                _ => false,
-            } {
-                continue;
+    let free_guards_path = prototype.clone().simulate();
+    let free_guards_path: HashSet<(usize, usize)> = free_guards_path
+        .into_iter()
+        .map(|gs| gs.pos)
+        .filter_map(|pos| {
+            if prototype.inside_pos(pos.0, pos.1) {
+                Some((pos.0.unsigned_abs(), pos.1.unsigned_abs()))
+            } else {
+                None
             }
-            sim.set_content(i, j, 'O');
-            sim.simulate();
+        })
+        .fold(HashSet::new(), |mut s, p| {
+            s.insert(p);
+            s
+        });
+    for (i, j) in free_guards_path {
+        let mut sim = prototype.clone();
 
-            if sim.inside() {
-                count += 1;
-            }
+        if match prototype.content(i, j) {
+            '#' | '>' | 'v' | '<' | '^' => true,
+            _ => false,
+        } {
+            continue;
+        }
+        sim.set_content(i, j, 'O');
+        sim.simulate();
+
+        if sim.inside() {
+            count += 1;
         }
     }
+
     count
 }
 
@@ -140,15 +155,17 @@ impl LabMap {
         None
     }
 
-    fn simulate(&mut self) {
-      
-        let mut possible_loop_starts: HashSet<GuardState> = HashSet::new();
+    fn simulate(&mut self) -> HashSet<GuardState> {
+        let mut path: HashSet<GuardState> = HashSet::new();
         loop {
-            let current_pos = GuardState{pos: self.pos,dir: self.current_dir()};
-            if !possible_loop_starts.insert(current_pos) {
-                return;
+            let current_pos = GuardState {
+                pos: self.pos,
+                dir: self.current_dir(),
+            };
+            if !path.insert(current_pos) {
+                break;
             }
-           // println!["{:?}", self];
+            // println!["{:?}", self];
             match self.guard_sees_infront() {
                 Some('#') | Some('O') => {
                     self.turn();
@@ -158,10 +175,10 @@ impl LabMap {
                 }
             }
             if !self.inside() {
-                return;
+                break;
             }
-           
         }
+        return path;
     }
 
     fn current_dir(&mut self) -> char {

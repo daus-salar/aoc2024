@@ -13,16 +13,7 @@ pub fn part2(input: &str) -> usize {
 }
 
 fn evaluate_reports_with_dumping(input: &[Vec<i32>]) -> Result<usize, Error> {
-    let safe_reports = input
-        .iter()
-        .filter(|r| {
-            if !is_safe_with_dumping(r) {
-                false
-            } else {
-                true
-            }
-        })
-        .count();
+    let safe_reports = input.iter().filter(|r| is_safe_with_dumping(r)).count();
     Ok(safe_reports)
 }
 
@@ -154,33 +145,24 @@ mod tests {
 
     #[test]
     fn is_safe_dumped_false() {
-        assert_eq!(false, is_safe_with_dumping(&vec![9, 7, 6, 2, 1]));
-        assert_eq!(false, is_safe_with_dumping(&vec![1, 2, 7, 8, 9]));
+        assert!(!is_safe_with_dumping(&[9, 7, 6, 2, 1]));
+        assert!(!is_safe_with_dumping(&[1, 2, 7, 8, 9]));
     }
 
     #[test]
     fn is_safe_dumped_true() {
-        assert_eq!(true, is_safe_with_dumping(&vec![7, 6, 4, 2, 1]));
-        assert_eq!(true, is_safe_with_dumping(&vec![1, 3, 2, 4, 5]));
-        assert_eq!(true, is_safe_with_dumping(&vec![8, 6, 4, 4, 1]));
-        assert_eq!(true, is_safe_with_dumping(&vec![1, 3, 6, 7, 9]));
-        assert_eq!(true, is_safe_with_dumping(&vec![6, 7, 5, 4, 3]));
+        assert!(is_safe_with_dumping(&[7, 6, 4, 2, 1]));
+        assert!(is_safe_with_dumping(&[1, 3, 2, 4, 5]));
+        assert!(is_safe_with_dumping(&[8, 6, 4, 4, 1]));
+        assert!(is_safe_with_dumping(&[1, 3, 6, 7, 9]));
+        assert!(is_safe_with_dumping(&[6, 7, 5, 4, 3]));
     }
 
     #[test]
     fn is_safe_dumped_debug_true() {
-        assert_eq!(
-            true,
-            is_safe_with_dumping(&vec![84, 82, 83, 84, 85, 88, 90])
-        );
-        assert_eq!(
-            true,
-            is_safe_with_dumping(&vec![70, 79, 82, 85, 86, 88, 89, 90])
-        );
-        assert_eq!(
-            true,
-            is_safe_with_dumping(&vec![79, 90, 82, 85, 86, 88, 89, 90])
-        );
+        assert!(is_safe_with_dumping(&[84, 82, 83, 84, 85, 88, 90]));
+        assert!(is_safe_with_dumping(&[70, 79, 82, 85, 86, 88, 89, 90]));
+        assert!(is_safe_with_dumping(&[79, 90, 82, 85, 86, 88, 89, 90]));
     }
     #[test]
     fn evaluate_report_simple() {

@@ -1,6 +1,6 @@
 use std::{io, num::ParseIntError};
 
-use aoc_runner_derive::{aoc, aoc_generator};
+use aoc_runner_derive::aoc;
 
 #[aoc(day7, part1)]
 pub fn part1(input: &str) -> i64 {
@@ -204,7 +204,7 @@ mod tests {
                 operands: vec![10, 19],
                 operators: vec![]
             }),
-            Equation::parse(&"190: 10 19")
+            Equation::parse("190: 10 19")
         );
     }
 

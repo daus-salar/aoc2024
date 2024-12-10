@@ -3,7 +3,7 @@ use std::{
     io,
 };
 
-use aoc_runner_derive::{aoc, aoc_generator};
+use aoc_runner_derive::aoc;
 
 #[aoc(day8, part1)]
 fn part1(input: &str) -> usize {
@@ -92,7 +92,7 @@ fn count_harmonic_antinodes(
                 let mut value = Pos::from(a);
                 loop {
                     value = Pos::new(value.x + diff.0, value.y + diff.1);
-                    if let Some(_) = value.inside_map(size) {
+                    if value.inside_map(size).is_some() {
                         antinodes.insert(value.clone());
                     } else {
                         break;
@@ -101,7 +101,7 @@ fn count_harmonic_antinodes(
                 let mut value = Pos::from(a);
                 loop {
                     value = Pos::new(value.x - diff.0, value.y - diff.1);
-                    if let Some(_) = value.inside_map(size) {
+                    if value.inside_map(size).is_some() {
                         antinodes.insert(value.clone());
                     } else {
                         break;
@@ -138,8 +138,8 @@ impl Pos {
 impl From<(isize, isize)> for Pos {
     fn from(value: (isize, isize)) -> Self {
         Pos {
-            x: value.0 as isize,
-            y: value.1 as isize,
+            x: value.0,
+            y: value.1,
         }
     }
 }

@@ -1,6 +1,5 @@
 use std::{
-    io::{self},
-    num::ParseIntError,
+    fmt::Debug, io::{self}, num::ParseIntError
 };
 
 #[aoc(day3, part1)]
@@ -35,13 +34,24 @@ fn parse(input: &str) -> Result<Vec<Operation>, Error> {
 
     Ok(result)
 }
-#[derive(Debug, PartialEq)]
+#[derive( PartialEq)]
 enum Operation {
     Multiply(i32, i32),
     Do(),
     DoNot(),
 }
 
+impl Debug for Operation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Operation::Multiply(_, _) => f.write_str("Multiply"),
+            Operation::Do() => f.write_str("Do"),
+            Operation::DoNot() =>f.write_str("DoNot"),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
 struct Computation {
     ops: Vec<Operation>,
 }
@@ -176,6 +186,83 @@ mod tests {
         let result = comp.map(|comp| comp.calculate_with_switches());
         assert_eq!(48, result.unwrap());
     }
+
+    peg::parser! {
+      grammar list_parser() for str {
+        rule number() -> i32
+          = n:$(['0'..='9']+) {? n.parse().or(Err("i32")) }
+
+        pub rule mul() -> Operation
+          = "mul(" o1:number()  "," o2:number() ")" { Operation::Multiply(o1,o2) }
+
+        pub rule do_rule() -> Operation
+          = "do()" { Operation::Do() }
+
+        pub rule donot() -> Operation
+          = "don't()" { Operation::DoNot()}
+
+        pub rule operation() -> Operation
+          = o:(mul() / do_rule() / donot()) { o }
+
+        pub rule list() -> usize
+          =  l:(number() ** ",")  { l.len() }
+
+        pub rule nonsense()
+          = l:([c if c.is_ascii()]+) {  }
+
+        pub rule operation_with_nonsense() -> Operation
+          = o:operation() nonsense() { o }
+
+        pub rule nonsense_with_operation() -> Operation
+          =  nonsense() o:operation() { o }
+
+
+        pub rule computation() -> Computation
+          = ops:( (operation() / operation_with_nonsense() / nonsense_with_operation() ) + ) {  Computation::from(ops) }
+
+
+      }
+    }
+
+    #[test]
+    fn peg_input_test() {
+        //let input =
+        //  "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))".to_string();
+        assert_eq!(list_parser::mul("mul(1,1)"), Ok(Operation::Multiply(1, 1)));
+        assert_eq!(list_parser::do_rule("do()"), Ok(Operation::Do()));
+        assert_eq!(list_parser::donot("don't()"), Ok(Operation::DoNot()));
+
+        let expected = Box::new(Computation::from(vec![
+            Operation::Multiply(2, 4),
+            Operation::DoNot(),
+            Operation::Multiply(5, 5),
+            Operation::Multiply(11, 8),
+            Operation::Do(),
+            Operation::Multiply(8, 5),
+        ]));
+
+        assert_eq!(
+            list_parser::computation("mul(2,4)don't()mul(5,5)mul(11,8)do()mul(8,5)").as_ref(),
+            Ok(expected.as_ref())
+        );
+    }
+    #[test]
+    fn peg_input_test2() {
+        let expected = Computation::from(vec![
+            Operation::Multiply(2, 4),
+            Operation::DoNot(),
+            Operation::Multiply(5, 5),
+            Operation::Multiply(11, 8),
+            Operation::Do(),
+            Operation::Multiply(8, 5),
+        ]);
+
+        assert_eq!(
+            list_parser::computation("mul(2,4)&don't()mul(5,5)mul(11,8)do()mul(8,5)"),
+            Ok(expected)
+        );
+    }
+
     #[test]
     fn main() -> Result<(), Error> {
         let input = read_input("input/2024/day3.txt")?;

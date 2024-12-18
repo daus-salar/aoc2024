@@ -1,7 +1,4 @@
-use std::{
-    collections::HashSet,
-    fmt::Debug,
-};
+use std::{collections::HashSet, fmt::Debug};
 
 #[aoc(day6, part1)]
 pub fn part1(input: &str) -> usize {
@@ -32,10 +29,7 @@ pub fn part2(input: &str) -> usize {
     for (i, j) in free_guards_path {
         let mut sim = prototype.clone();
 
-        if match prototype.content(i, j) {
-            '#' | '>' | 'v' | '<' | '^' => true,
-            _ => false,
-        } {
+        if matches!(prototype.content(i, j), '#' | '>' | 'v' | '<' | '^') {
             continue;
         }
         sim.set_content(i, j, 'O');
@@ -58,7 +52,6 @@ pub struct LabMap {
 }
 
 impl LabMap {
-    
     pub fn new(lab_map_raw: &str) -> Self {
         let mut pos = None;
         let mut obstacles: Vec<(usize, usize)> = Vec::new();
@@ -277,10 +270,9 @@ impl Debug for LabMap {
 }
 #[cfg(test)]
 mod tests {
-    
+
     use crate::common;
     use common::load;
-
 
     use super::*;
 
@@ -293,7 +285,7 @@ mod tests {
     fn parse_test() {
         let lab_map_raw = load("test_data/day6.txt").unwrap();
 
-        let  map = LabMap::new(lab_map_raw.as_str());
+        let map = LabMap::new(lab_map_raw.as_str());
 
         let expected = (6, 4);
         assert_eq!(expected, map.pos);
@@ -329,6 +321,4 @@ mod tests {
 
         assert_eq!(1915, part2(lab_map_raw.as_str()));
     }
-
-
 }

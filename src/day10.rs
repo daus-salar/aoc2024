@@ -29,7 +29,7 @@ impl From<io::Error> for Error {
 mod tests {
     use crate::common::{self, load};
 
-    use super::*;
+    
 
     #[test]
     fn part1_example() {

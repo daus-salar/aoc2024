@@ -58,20 +58,6 @@ fn is_safe_with_dumping(report: &[i32]) -> bool {
     }
 }
 
-fn is_safe_dumped_brute(report: &[i32]) -> bool {
-    match is_safe(report) {
-        Ok(()) => true,
-        Err(ErrorAt::Pos(..)) => {
-            for i in 0..report.len() {
-                if is_safe(&dump_pos(report, i)).is_ok() {
-                    return true;
-                }
-            }
-            false
-        }
-    }
-}
-
 fn dump_pos(report: &[i32], pos: usize) -> Vec<i32> {
     let mut report_altered = report.to_owned();
 
@@ -152,6 +138,7 @@ mod tests {
     fn is_safe_dumped_false() {
         assert!(!is_safe_with_dumping(&[9, 7, 6, 2, 1]));
         assert!(!is_safe_with_dumping(&[1, 2, 7, 8, 9]));
+
     }
 
     #[test]

@@ -1,7 +1,6 @@
 use std::{
     collections::HashSet,
     fmt::Debug,
-    io::{Write},
 };
 
 #[aoc(day6, part1)]
@@ -59,10 +58,7 @@ pub struct LabMap {
 }
 
 impl LabMap {
-    fn len(&self) -> usize {
-        self.data.len()
-    }
-
+    
     pub fn new(lab_map_raw: &str) -> Self {
         let mut pos = None;
         let mut obstacles: Vec<(usize, usize)> = Vec::new();

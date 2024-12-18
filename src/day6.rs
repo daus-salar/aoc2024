@@ -1,7 +1,7 @@
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     fmt::Debug,
-    io::{self, stdout, Write},
+    io::{Write},
 };
 
 #[aoc(day6, part1)]
@@ -168,7 +168,7 @@ impl LabMap {
                 break;
             }
         }
-        return path;
+        path
     }
 
     fn current_dir(&mut self) -> char {
@@ -281,9 +281,6 @@ impl Debug for LabMap {
 }
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-
-    use io::Read;
     
     use crate::common;
     use common::load;

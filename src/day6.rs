@@ -50,16 +50,6 @@ pub fn part2(input: &str) -> usize {
     count
 }
 
-#[derive(Debug, PartialEq)]
-pub enum Error {
-    IO(std::io::ErrorKind),
-}
-
-impl From<io::Error> for Error {
-    fn from(value: io::Error) -> Self {
-        Error::IO(value.kind())
-    }
-}
 #[derive(Clone)]
 pub struct LabMap {
     data: Vec<Vec<char>>,
@@ -294,6 +284,10 @@ mod tests {
     use std::fs::File;
 
     use io::Read;
+    
+    use crate::common;
+    use common::load;
+
 
     use super::*;
 
@@ -306,7 +300,7 @@ mod tests {
     fn parse_test() {
         let lab_map_raw = load("test_data/day6.txt").unwrap();
 
-        let mut map = LabMap::new(lab_map_raw.as_str());
+        let  map = LabMap::new(lab_map_raw.as_str());
 
         let expected = (6, 4);
         assert_eq!(expected, map.pos);
@@ -343,10 +337,5 @@ mod tests {
         assert_eq!(1915, part2(lab_map_raw.as_str()));
     }
 
-    fn load(path: &str) -> Result<String, Error> {
-        let mut input = String::new();
-        let mut input_file = File::open(path)?;
-        input_file.read_to_string(&mut input)?;
-        Ok(input)
-    }
+
 }
